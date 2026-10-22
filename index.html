@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國語第六課：故事「動」起來｜動畫發展重點圖表合作拼圖</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Google Fonts: Noto Sans TC & Noto Serif TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f6eedf;
+      color: #2c251e;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    
+    .serif-title {
+      font-family: 'Noto Serif TC', "Songti TC", "Biaukai", "DFKai-SB", serif;
+    }
+
+    /* Dashed table slot styling matching slide */
+    .table-slot {
+      background-color: rgba(255, 255, 255, 0.45);
+      border: 2px dashed #8f8170;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .table-slot:hover {
+      background-color: rgba(255, 255, 255, 0.8);
+      border-color: #e07a3f;
+    }
+    .table-slot.active-target {
+      background-color: #fef3c7;
+      border-color: #d97706;
+      border-style: solid;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.35);
+      transform: scale(1.02);
+    }
+    .table-slot.correct-slot {
+      background-color: #ecfdf5 !important;
+      border-color: #10b981 !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+    }
+    .table-slot.wrong-slot {
+      background-color: #fef2f2 !important;
+      border-color: #ef4444 !important;
+      border-style: dashed !important;
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+
+    /* Tactile block styling */
+    .drag-card {
+      touch-action: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      cursor: grab;
+    }
+    .drag-card:active {
+      cursor: grabbing;
+    }
+    .drag-card.selected-card {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 10px 20px -3px rgba(180, 83, 9, 0.35), 0 0 0 3px #f59e0b;
+      border-color: #d97706 !important;
+    }
+    .drag-card.dragging {
+      opacity: 0.4;
+      transform: scale(0.95);
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #ebdcc9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbb497;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a89073;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Top Classroom Banner (matching green header from slide) -->
+  <header class="bg-[#425e3b] text-white shadow-md border-b-4 border-[#334b2e] sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Title & Lesson tag -->
+      <div class="flex items-center space-x-3">
+        <span class="bg-[#f5a76c] text-[#3d240d] text-xs md:text-sm font-black px-2.5 py-0.5 rounded-full shadow-sm">
+          國語六上 · 第六課
+        </span>
+        <h1 class="serif-title text-2xl md:text-3xl font-extrabold tracking-wider drop-shadow-sm flex items-center">
+          故事「動」起來
+        </h1>
+        <span class="text-xs md:text-sm text-[#d0e4cc] hidden sm:inline-block border-l border-[#617e5a] pl-3">
+          動畫發展史整理合作學習單
+        </span>
+      </div>
+
+      <!-- Action Toolbar (Timer, Sound, Help) -->
+      <div class="flex items-center space-x-2 md:space-x-3 text-sm">
+        <!-- Timer -->
+        <div class="flex items-center bg-[#31482b] px-3 py-1.5 rounded-lg border border-[#526f4c] shadow-inner">
+          <i data-lucide="timer" class="w-4 h-4 mr-1.5 text-amber-300"></i>
+          <span id="timer-display" class="font-mono font-bold text-amber-200 w-12 text-center text-sm md:text-base">00:00</span>
+          <button id="btn-timer-toggle" class="ml-2 text-xs text-amber-300 hover:text-white underline">開始</button>
+        </div>
+
+        <!-- Sound Toggle -->
+        <button id="btn-sound" class="flex items-center justify-center p-2 rounded-lg bg-[#31482b] hover:bg-[#253721] text-amber-200 border border-[#526f4c] transition" title="開關音效">
+          <i data-lucide="volume-2" id="sound-icon" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Help / Guide button -->
+        <button id="btn-open-guide" class="flex items-center bg-[#f5a76c] text-[#3d240d] hover:bg-[#e09153] font-bold px-3 py-1.5 rounded-lg transition shadow-sm text-xs md:text-sm">
+          <i data-lucide="help-circle" class="w-4 h-4 mr-1"></i>
+          <span>玩法說明</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub-header Control Bar -->
+  <div class="bg-[#edd8be] border-b border-[#ddc3a3] shadow-sm px-4 py-2">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Instruction & Progress -->
+      <div class="flex items-center space-x-2 text-sm text-[#473420]">
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-600"></span>
+        </span>
+        <span class="font-bold">任務目標：</span>
+        <span>將下方所有內容方塊填入對應的表格位置中。</span>
+        <span id="filled-status" class="ml-2 font-mono bg-white/70 px-2 py-0.5 rounded text-xs text-[#6e4e2e] font-semibold">
+          已放置 0 / 18
+        </span>
+        <span id="accuracy-status" class="ml-2 font-mono bg-white/80 px-2.5 py-0.5 rounded text-xs text-stone-700 font-bold border border-stone-200">
+          正確率：--
+        </span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center flex-wrap gap-2">
+        <button id="btn-check-answer" class="flex items-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1.5 rounded-lg shadow transition transform active:scale-95 text-sm">
+          <i data-lucide="check-circle-2" class="w-4 h-4 mr-1.5"></i>
+          <span>對答案</span>
+        </button>
+
+        <button id="btn-toggle-solution" class="flex items-center bg-amber-600 hover:bg-amber-700 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm transition text-sm">
+          <i data-lucide="book-open" class="w-4 h-4 mr-1"></i>
+          <span id="solution-btn-text">解答對照</span>
+        </button>
+
+        <button id="btn-hint" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm transition text-sm">
+          <i data-lucide="lightbulb" class="w-4 h-4 mr-1"></i>
+          <span>提示一格</span>
+        </button>
+
+        <button id="btn-fill-all" class="flex items-center bg-stone-600 hover:bg-stone-700 text-white font-medium px-2.5 py-1.5 rounded-lg shadow-sm transition text-sm" title="老師示範：快速填入全部答案">
+          <i data-lucide="sparkles" class="w-4 h-4 mr-1"></i>
+          <span>一鍵示範</span>
+        </button>
+
+        <button id="btn-reset" class="flex items-center bg-rose-600 hover:bg-rose-700 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm transition text-sm">
+          <i data-lucide="rotate-ccw" class="w-4 h-4 mr-1"></i>
+          <span>全部重置</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Work Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 flex flex-col gap-5">
+
+    <!-- Interactive Table Container (Slide Style) -->
+    <section class="bg-[#faf4ea] rounded-2xl p-3 sm:p-5 shadow-lg border-2 border-[#d5c3ab] relative">
+      <!-- Watermark/Lesson Title inside Slide Board -->
+      <div class="flex items-center justify-between pb-3 mb-2 border-b-2 border-[#ebd8bf]">
+        <div class="flex items-center space-x-2">
+          <span class="w-3 h-3 rounded-full bg-[#f5a76c]"></span>
+          <h2 class="serif-title text-xl md:text-2xl font-black text-[#3d2e1f] tracking-wide">
+            故事「動」起來 · 動畫時間軸表格
+          </h2>
+        </div>
+        <div class="text-xs text-[#8c745c] hidden sm:block">
+          💡 操作方式：先點選下方方塊再點選空格，或直接拖曳；點擊已填入方塊可收回
+        </div>
+      </div>
+
+      <!-- Result Feedback Banner (Appears when checking answer) -->
+      <div id="check-feedback-banner" class="hidden mb-4 p-3.5 rounded-xl transition-all duration-300 shadow-sm">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center space-x-2">
+            <span id="feedback-icon-container" class="p-1 rounded-full text-white"></span>
+            <span id="feedback-message" class="font-bold text-sm md:text-base"></span>
+          </div>
+          <button id="btn-close-banner" class="text-xs text-stone-500 hover:text-stone-800 underline">收起提示</button>
+        </div>
+
+        <!-- 專屬「正確率」與統計資訊欄 -->
+        <div id="accuracy-stats-bar" class="mt-3 pt-3 border-t border-stone-300/60 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div class="bg-white/90 p-2.5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center justify-center">
+            <span class="text-xs text-stone-500 font-bold mb-0.5">📊 正確率</span>
+            <span id="stat-accuracy" class="text-xl md:text-2xl font-black text-emerald-600">--%</span>
+          </div>
+          <div class="bg-white/90 p-2.5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center justify-center">
+            <span class="text-xs text-stone-500 font-bold mb-0.5">✅ 答對格數</span>
+            <span id="stat-correct" class="text-lg md:text-xl font-black text-blue-600">0 / 18</span>
+          </div>
+          <div class="bg-white/90 p-2.5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center justify-center">
+            <span class="text-xs text-stone-500 font-bold mb-0.5">❌ 需調整／未填</span>
+            <span id="stat-wrong" class="text-lg md:text-xl font-black text-rose-500">18 格</span>
+          </div>
+          <div class="bg-white/90 p-2.5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center justify-center">
+            <span class="text-xs text-stone-500 font-bold mb-0.5">⏱️ 作答時間</span>
+            <span id="stat-time" class="text-lg md:text-xl font-black text-amber-700">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Big Grid Table -->
+      <div class="overflow-x-auto pb-2">
+        <div class="min-w-[760px] grid grid-cols-[110px_repeat(5,1fr)] gap-2.5">
+          
+          <!-- ================= ROW 1: 年份 ================= -->
+          <!-- Row Label -->
+          <div class="flex items-center justify-center">
+            <div class="w-full bg-[#f5a76c] text-[#3d240d] font-black text-lg md:text-xl py-4 rounded-xl shadow text-center tracking-widest border border-[#e08945]">
+              年份
+            </div>
+          </div>
+          <!-- Year 1: 1928年 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="year-1" data-correct-type="year" data-correct-id="card-year-1">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">第 1 階段</span>
+          </div>
+          <!-- Year 2: 1937年 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="year-2" data-correct-type="year" data-correct-id="card-year-2">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">第 2 階段</span>
+          </div>
+          <!-- Year 3: 1988年 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="year-3" data-correct-type="year" data-correct-id="card-year-3">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">第 3 階段</span>
+          </div>
+          <!-- Year 4: 1995年 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="year-4" data-correct-type="year" data-correct-id="card-year-4">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">第 4 階段</span>
+          </div>
+          <!-- Year 5: 2001年 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="year-5" data-correct-type="year" data-correct-id="card-year-5">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">第 5 階段</span>
+          </div>
+
+          <!-- ================= ROW 2: 公司 (Merged columns!) ================= -->
+          <!-- Row Label -->
+          <div class="flex items-center justify-center">
+            <div class="w-full bg-[#f5a76c] text-[#3d240d] font-black text-lg md:text-xl py-4 rounded-xl shadow text-center tracking-widest border border-[#e08945]">
+              公司
+            </div>
+          </div>
+          <!-- Company 1: 迪士尼 (Spans cols 1 & 2) -->
+          <div class="table-slot col-span-2 rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="comp-1" data-correct-type="company" data-correct-id="card-comp-1">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">前兩時期代表公司 (涵蓋1928、1937)</span>
+          </div>
+          <!-- Company 2: 皮克斯 (Spans cols 3 & 4) -->
+          <div class="table-slot col-span-2 rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="comp-2" data-correct-type="company" data-correct-id="card-comp-2">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">3D時期代表公司 (涵蓋1988、1995)</span>
+          </div>
+          <!-- Company 3: 吉卜力 (Col 5) -->
+          <div class="table-slot col-span-1 rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="comp-3" data-correct-type="company" data-correct-id="card-comp-3">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">2001代表公司</span>
+          </div>
+
+          <!-- ================= ROW 3: 作品 ================= -->
+          <!-- Row Label -->
+          <div class="flex items-center justify-center">
+            <div class="w-full bg-[#f5a76c] text-[#3d240d] font-black text-lg md:text-xl py-4 rounded-xl shadow text-center tracking-widest border border-[#e08945]">
+              作品
+            </div>
+          </div>
+          <!-- Work 1: 汽船威利號 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="work-1" data-correct-type="work" data-correct-id="card-work-1">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">1928年作品</span>
+          </div>
+          <!-- Work 2: 白雪公主 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="work-2" data-correct-type="work" data-correct-id="card-work-2">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">1937年作品</span>
+          </div>
+          <!-- Work 3: 小錫兵 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="work-3" data-correct-type="work" data-correct-id="card-work-3">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">1988年作品</span>
+          </div>
+          <!-- Work 4: 玩具總動員 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="work-4" data-correct-type="work" data-correct-id="card-work-4">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">1995年作品</span>
+          </div>
+          <!-- Work 5: 神隱少女 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[78px] text-center" 
+               data-slot-id="work-5" data-correct-type="work" data-correct-id="card-work-5">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">2001年作品</span>
+          </div>
+
+          <!-- ================= ROW 4: 特色 ================= -->
+          <!-- Row Label -->
+          <div class="flex items-center justify-center">
+            <div class="w-full bg-[#f5a76c] text-[#3d240d] font-black text-lg md:text-xl py-4 rounded-xl shadow text-center tracking-widest border border-[#e08945]">
+              特色
+            </div>
+          </div>
+          <!-- Feature 1: 黑白短片 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[96px] text-center" 
+               data-slot-id="feat-1" data-correct-type="feature" data-correct-id="card-feat-1">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">威利號特色</span>
+          </div>
+          <!-- Feature 2: 彩色長片 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[96px] text-center" 
+               data-slot-id="feat-2" data-correct-type="feature" data-correct-id="card-feat-2">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">白雪公主特色</span>
+          </div>
+          <!-- Feature 3: 奧斯卡最佳動畫短片、3D短片 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[96px] text-center" 
+               data-slot-id="feat-3" data-correct-type="feature" data-correct-id="card-feat-3">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">小錫兵特色</span>
+          </div>
+          <!-- Feature 4: 第一部3D長片 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[96px] text-center" 
+               data-slot-id="feat-4" data-correct-type="feature" data-correct-id="card-feat-4">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">玩具總動員特色</span>
+          </div>
+          <!-- Feature 5: 融入人文關懷議題 -->
+          <div class="table-slot rounded-xl p-1.5 flex flex-col items-center justify-center min-h-[96px] text-center" 
+               data-slot-id="feat-5" data-correct-type="feature" data-correct-id="card-feat-5">
+            <span class="slot-placeholder text-xs text-stone-400 font-medium">神隱少女特色</span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Block Candidate Pool (小方塊收納區) -->
+    <section class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-5 shadow-md border border-[#e5d5c0]">
+      <!-- Pool Header with Category Filters -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3 pb-2 border-b border-stone-200">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="layers" class="w-5 h-5 text-amber-700"></i>
+          <h3 class="font-black text-lg text-stone-800">
+            小方塊候選池
+          </h3>
+          <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+            剩餘 <span id="pool-remaining-count">18</span> 個
+          </span>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto text-xs font-bold" id="category-filter-group">
+          <button data-filter="all" class="filter-tab active-filter px-3 py-1 rounded-full bg-stone-800 text-white shadow-sm transition">
+            全部 (18)
+          </button>
+          <button data-filter="year" class="filter-tab px-3 py-1 rounded-full bg-red-100 text-red-800 hover:bg-red-200 transition">
+            年份 (5)
+          </button>
+          <button data-filter="company" class="filter-tab px-3 py-1 rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 transition">
+            公司 (3)
+          </button>
+          <button data-filter="work" class="filter-tab px-3 py-1 rounded-full bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
+            作品 (5)
+          </button>
+          <button data-filter="feature" class="filter-tab px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition">
+            特色 (5)
+          </button>
+          <button id="btn-shuffle-pool" class="ml-2 text-stone-500 hover:text-stone-800 p-1 rounded hover:bg-stone-100" title="打散順序">
+            <i data-lucide="shuffle" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hint text for selection -->
+      <div id="selection-tip" class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-3 hidden items-center justify-between">
+        <div class="flex items-center">
+          <i data-lucide="mouse-pointer" class="w-3.5 h-3.5 mr-1.5 text-amber-600"></i>
+          <span>目前選中：<strong id="selected-card-name" class="text-amber-900 font-black"></strong>，請點選上方表格的空格放入。</span>
+        </div>
+        <button id="btn-cancel-select" class="text-xs text-stone-500 hover:text-stone-900 underline">取消選取</button>
+      </div>
+
+      <!-- The Cards Grid -->
+      <div id="cards-pool" class="flex flex-wrap gap-2.5 min-h-[120px] p-2 bg-[#f9f5ef] rounded-xl border border-dashed border-stone-300">
+        <!-- Cards will be populated here via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Knowledge & Summary Section (課文重點複習卡 - 學生答題完才跑出來) -->
+    <section id="review-section" class="hidden bg-white rounded-2xl p-4 md:p-6 shadow-md border-2 border-emerald-300 transition-all duration-500">
+      <div class="mb-3 px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 font-bold flex items-center">
+        <i data-lucide="unlock" class="w-4 h-4 mr-1.5 text-emerald-600"></i>
+        <span>作答完成解鎖！請對照課文三大時代脈絡進行重點複習：</span>
+      </div>
+      <div class="flex items-center justify-between cursor-pointer" id="review-header">
+        <div class="flex items-center space-x-2">
+          <div class="p-1.5 rounded-lg bg-emerald-100 text-emerald-800">
+            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base md:text-lg text-stone-800">課文重點解析：動畫發展的三大關鍵時代</h3>
+            <p class="text-xs text-stone-500">點擊展開／收合完整脈絡整理，對照學習更深刻</p>
+          </div>
+        </div>
+        <button id="btn-toggle-review" class="p-1 rounded-full hover:bg-stone-100 text-stone-500">
+          <i data-lucide="chevron-down" id="review-arrow" class="w-5 h-5 transition-transform duration-200"></i>
+        </button>
+      </div>
+
+      <div id="review-content" class="mt-4 pt-4 border-t border-stone-200 grid md:grid-cols-3 gap-4 text-sm">
+        <!-- Diseny Era -->
+        <div class="bg-red-50/60 rounded-xl p-3.5 border border-red-200">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <h4 class="font-black text-red-900">1. 手繪手作啟蒙 · 迪士尼</h4>
+          </div>
+          <ul class="text-xs text-stone-700 space-y-1.5 leading-relaxed">
+            <li><strong>1928年《汽船威利號》：</strong>米奇正式登場，影史第一部具有同步音效的「黑白短片」，讓動畫有了聲音與節奏。</li>
+            <li><strong>1937年《白雪公主》：</strong>影史第一部「彩色長片」，證明動畫不僅是短笑話，也能演繹完整的長篇動人故事。</li>
+          </ul>
+        </div>
+
+        <!-- Pixar Era -->
+        <div class="bg-blue-50/60 rounded-xl p-3.5 border border-blue-200">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            <h4 class="font-black text-blue-900">2. 電腦3D科技革新 · 皮克斯</h4>
+          </div>
+          <ul class="text-xs text-stone-700 space-y-1.5 leading-relaxed">
+            <li><strong>1988年《小錫兵》：</strong>電腦技術突破，成為第一部榮獲「奧斯卡最佳動畫短片獎」的3D電腦短片。</li>
+            <li><strong>1995年《玩具總動員》：</strong>全球「第一部全電腦3D動畫長片」，開創了全世界動畫科技的新紀元。</li>
+          </ul>
+        </div>
+
+        <!-- Ghibli Era -->
+        <div class="bg-emerald-50/60 rounded-xl p-3.5 border border-emerald-200">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h4 class="font-black text-emerald-900">3. 細膩手繪與人文底蘊 · 吉卜力</h4>
+          </div>
+          <ul class="text-xs text-stone-700 space-y-1.5 leading-relaxed">
+            <li><strong>2001年《神隱少女》：</strong>由宮崎駿執導，堅持手繪細膩溫暖畫風，並深刻「融入人文關懷與生態議題」，奪下柏林影展金熊獎與奧斯卡最佳動畫長片。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Help & Rules Modal -->
+  <div id="guide-modal" class="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 md:p-6 shadow-2xl border border-stone-200 transform transition-all">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
+        <div class="flex items-center space-x-2">
+          <span class="p-2 bg-amber-100 text-amber-800 rounded-xl">
+            <i data-lucide="help-circle" class="w-5 h-5"></i>
+          </span>
+          <h3 class="font-black text-xl text-stone-900">如何使用這份圖表學習單？</h3>
+        </div>
+        <button id="btn-close-guide" class="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 text-sm text-stone-700 leading-relaxed">
+        <div class="flex items-start space-x-3">
+          <span class="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span>
+          <div>
+            <strong class="text-stone-900 block">兩種輕鬆放置方式：</strong>
+            <p class="text-xs text-stone-600">
+              ① <strong>點選法（最適合平板與大觸控螢幕）：</strong>先點選下方任一方塊，再點選表格空格；點擊表格內的方塊即可收回。<br>
+              ② <strong>拖曳法：</strong>用滑鼠或手指直接把方塊拖進格子裡。
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <span class="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span>
+          <div>
+            <strong class="text-stone-900 block">注意跨欄的「公司」：</strong>
+            <p class="text-xs text-stone-600">
+              「迪士尼」橫跨 1928 與 1937 兩個年份；「皮克斯」橫跨 1988 與 1995；「吉卜力」則對應 2001。
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <span class="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">3</span>
+          <div>
+            <strong class="text-stone-900 block">隨時檢查與複習：</strong>
+            <p class="text-xs text-stone-600">
+              排好後點擊右上角<strong>「對答案」</strong>，答對會變綠色，答錯會以紅色提示！也可以利用<strong>「解答對照」</strong>或<strong>「提示一格」</strong>逐步解題。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-3 border-t border-stone-100 flex justify-end">
+        <button id="btn-guide-ok" class="bg-[#425e3b] hover:bg-[#344a2e] text-white font-bold px-5 py-2 rounded-xl transition text-sm">
+          知道了，開始挑戰！
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Celebration Modal -->
+  <div id="victory-modal" class="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border-4 border-amber-400 transform transition-all animate-bounce-once">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+        <i data-lucide="trophy" class="w-9 h-9"></i>
+      </div>
+      <h3 class="serif-title text-2xl font-black text-stone-900 mb-1">
+        太厲害了！全數正確！🎉
+      </h3>
+      <p class="text-sm text-stone-600 mb-4">
+        全班合力完成了第六課《故事「動」起來》的動畫發展史表格！
+      </p>
+
+      <div class="bg-amber-50 rounded-xl p-3 mb-5 border border-amber-200 text-xs text-amber-900">
+        <div class="flex justify-around items-center">
+          <div>
+            <span class="block text-stone-500">花費時間</span>
+            <span id="victory-time" class="font-mono font-bold text-base text-amber-700">00:00</span>
+          </div>
+          <div class="h-8 w-px bg-amber-200"></div>
+          <div>
+            <span class="block text-stone-500">正確率</span>
+            <span class="font-bold text-base text-emerald-600">100% (18/18)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex space-x-2">
+        <button id="btn-victory-restart" class="flex-1 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold py-2.5 rounded-xl transition text-sm">
+          再挑戰一次
+        </button>
+        <button id="btn-victory-close" class="flex-1 bg-[#425e3b] hover:bg-[#32482c] text-white font-bold py-2.5 rounded-xl transition text-sm">
+          查看整理好的表格
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Context Generator (Zero dependency Web Audio API) -->
+  <script>
+    // Audio synthesis setup
+    const SoundEffects = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+      },
+      resume() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      playPop() {
+        if (!this.enabled) return;
+        this.init(); this.resume();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.09);
+      },
+      playDrop() {
+        if (!this.enabled) return;
+        this.init(); this.resume();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(540, this.ctx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.07);
+      },
+      playSuccess() {
+        if (!this.enabled) return;
+        this.init(); this.resume();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = this.ctx.currentTime + idx * 0.08;
+          gain.gain.setValueAtTime(0.12, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.32);
+        });
+      },
+      playFanfare() {
+        if (!this.enabled) return;
+        this.init(); this.resume();
+        if (!this.ctx) return;
+        const melody = [
+          { f: 523.25, t: 0.15 },
+          { f: 659.25, t: 0.15 },
+          { f: 783.99, t: 0.15 },
+          { f: 1046.5, t: 0.45 }
+        ];
+        let curr = this.ctx.currentTime;
+        melody.forEach(item => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = item.f;
+          gain.gain.setValueAtTime(0.2, curr);
+          gain.gain.exponentialRampToValueAtTime(0.01, curr + item.t);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(curr);
+          osc.stop(curr + item.t);
+          curr += item.t;
+        });
+      },
+      playWrong() {
+        if (!this.enabled) return;
+        this.init(); this.resume();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime + 0.18);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      }
+    };
+
+    // Card dataset definitions based strictly on lesson content
+    const ALL_CARDS = [
+      // 5 Year Cards
+      { id: 'card-year-1', type: 'year', title: '1928年', color: 'red', textCol: '#9a3832', fontClass: 'text-xl font-black' },
+      { id: 'card-year-2', type: 'year', title: '1937年', color: 'red', textCol: '#9a3832', fontClass: 'text-xl font-black' },
+      { id: 'card-year-3', type: 'year', title: '1988年', color: 'red', textCol: '#9a3832', fontClass: 'text-xl font-black' },
+      { id: 'card-year-4', type: 'year', title: '1995年', color: 'red', textCol: '#9a3832', fontClass: 'text-xl font-black' },
+      { id: 'card-year-5', type: 'year', title: '2001年', color: 'red', textCol: '#9a3832', fontClass: 'text-xl font-black' },
+
+      // 3 Company Cards
+      { id: 'card-comp-1', type: 'company', title: '迪士尼', color: 'blue', textCol: '#2357a4', fontClass: 'text-xl font-black' },
+      { id: 'card-comp-2', type: 'company', title: '皮克斯', color: 'blue', textCol: '#2357a4', fontClass: 'text-xl font-black' },
+      { id: 'card-comp-3', type: 'company', title: '吉卜力', color: 'blue', textCol: '#2357a4', fontClass: 'text-xl font-black' },
+
+      // 5 Work Cards
+      { id: 'card-work-1', type: 'work', title: '《汽船威利號》', color: 'amber', textCol: '#9a3832', fontClass: 'text-base md:text-lg font-bold' },
+      { id: 'card-work-2', type: 'work', title: '《白雪公主》', color: 'amber', textCol: '#9a3832', fontClass: 'text-base md:text-lg font-bold' },
+      { id: 'card-work-3', type: 'work', title: '《小錫兵》', color: 'amber', textCol: '#9a3832', fontClass: 'text-base md:text-lg font-bold' },
+      { id: 'card-work-4', type: 'work', title: '《玩具總動員》', color: 'amber', textCol: '#9a3832', fontClass: 'text-base md:text-lg font-bold' },
+      { id: 'card-work-5', type: 'work', title: '《神隱少女》', color: 'amber', textCol: '#9a3832', fontClass: 'text-base md:text-lg font-bold' },
+
+      // 5 Feature Cards
+      { id: 'card-feat-1', type: 'feature', title: '黑白短片', sublines: ['黑白', '短片'], color: 'emerald', textCol: '#2d2d2d', fontClass: 'text-sm md:text-base font-bold' },
+      { id: 'card-feat-2', type: 'feature', title: '彩色長片', sublines: ['彩色', '長片'], color: 'emerald', textCol: '#2d2d2d', fontClass: 'text-sm md:text-base font-bold' },
+      { id: 'card-feat-3', type: 'feature', title: '奧斯卡最佳動畫短片\n3D短片', sublines: ['奧斯卡', '最佳動畫', '短片', '3D短片'], color: 'emerald', textCol: '#2d2d2d', fontClass: 'text-xs md:text-sm font-bold' },
+      { id: 'card-feat-4', type: 'feature', title: '第一部3D長片', sublines: ['第一部', '3D長片'], color: 'emerald', textCol: '#2d2d2d', fontClass: 'text-sm md:text-base font-bold' },
+      { id: 'card-feat-5', type: 'feature', title: '融入人文關懷議題', sublines: ['融入人文', '關懷議題'], color: 'emerald', textCol: '#2d2d2d', fontClass: 'text-sm md:text-base font-bold' }
+    ];
+
+    // Card lookups
+    const cardMap = {};
+    ALL_CARDS.forEach(c => cardMap[c.id] = c);
+
+    // State Management
+    const state = {
+      // Map slotId -> cardId
+      placements: {},
+      selectedCardId: null,
+      currentFilter: 'all',
+      isChecking: false,
+      timerRunning: false,
+      timerSeconds: 0,
+      timerInterval: null
+    };
+
+    // DOM Elements
+    const cardsPoolEl = document.getElementById('cards-pool');
+    const poolRemainingCountEl = document.getElementById('pool-remaining-count');
+    const filledStatusEl = document.getElementById('filled-status');
+    const accuracyStatusEl = document.getElementById('accuracy-status');
+    const reviewSection = document.getElementById('review-section');
+    const statAccuracyEl = document.getElementById('stat-accuracy');
+    const statCorrectEl = document.getElementById('stat-correct');
+    const statWrongEl = document.getElementById('stat-wrong');
+    const statTimeEl = document.getElementById('stat-time');
+    const selectionTipEl = document.getElementById('selection-tip');
+    const selectedCardNameEl = document.getElementById('selected-card-name');
+    const btnCancelSelect = document.getElementById('btn-cancel-select');
+    const btnCheckAnswer = document.getElementById('btn-check-answer');
+    const btnToggleSolution = document.getElementById('btn-toggle-solution');
+    const solutionBtnText = document.getElementById('solution-btn-text');
+    const btnHint = document.getElementById('btn-hint');
+    const btnFillAll = document.getElementById('btn-fill-all');
+    const btnReset = document.getElementById('btn-reset');
+    const btnShufflePool = document.getElementById('btn-shuffle-pool');
+    const btnTimerToggle = document.getElementById('btn-timer-toggle');
+    const timerDisplay = document.getElementById('timer-display');
+    const btnSound = document.getElementById('btn-sound');
+    const soundIcon = document.getElementById('sound-icon');
+    const btnOpenGuide = document.getElementById('btn-open-guide');
+    const btnCloseGuide = document.getElementById('btn-close-guide');
+    const btnGuideOk = document.getElementById('btn-guide-ok');
+    const guideModal = document.getElementById('guide-modal');
+    const victoryModal = document.getElementById('victory-modal');
+    const victoryTimeEl = document.getElementById('victory-time');
+    const btnVictoryRestart = document.getElementById('btn-victory-restart');
+    const btnVictoryClose = document.getElementById('btn-victory-close');
+    const reviewHeader = document.getElementById('review-header');
+    const reviewContent = document.getElementById('review-content');
+    const reviewArrow = document.getElementById('review-arrow');
+    const checkFeedbackBanner = document.getElementById('check-feedback-banner');
+    const feedbackIconContainer = document.getElementById('feedback-icon-container');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const btnCloseBanner = document.getElementById('btn-close-banner');
+
+    // Timer Implementation
+    function updateTimerUI() {
+      const mins = Math.floor(state.timerSeconds / 60).toString().padStart(2, '0');
+      const secs = (state.timerSeconds % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      if (state.timerRunning) return;
+      state.timerRunning = true;
+      btnTimerToggle.textContent = '暫停';
+      btnTimerToggle.className = 'ml-2 text-xs text-rose-300 hover:text-white underline';
+      state.timerInterval = setInterval(() => {
+        state.timerSeconds++;
+        updateTimerUI();
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!state.timerRunning) return;
+      state.timerRunning = false;
+      btnTimerToggle.textContent = '繼續';
+      btnTimerToggle.className = 'ml-2 text-xs text-amber-300 hover:text-white underline';
+      clearInterval(state.timerInterval);
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      state.timerSeconds = 0;
+      updateTimerUI();
+      btnTimerToggle.textContent = '開始';
+    }
+
+    btnTimerToggle.addEventListener('click', () => {
+      if (state.timerRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    // Sound toggle
+    btnSound.addEventListener('click', () => {
+      SoundEffects.enabled = !SoundEffects.enabled;
+      if (SoundEffects.enabled) {
+        soundIcon.setAttribute('data-lucide', 'volume-2');
+        SoundEffects.playPop();
+      } else {
+        soundIcon.setAttribute('data-lucide', 'volume-x');
+      }
+      lucide.createIcons();
+    });
+
+    // Guide Modal
+    btnOpenGuide.addEventListener('click', () => {
+      guideModal.classList.remove('hidden');
+    });
+    btnCloseGuide.addEventListener('click', () => {
+      guideModal.classList.add('hidden');
+    });
+    btnGuideOk.addEventListener('click', () => {
+      guideModal.classList.add('hidden');
+      SoundEffects.playPop();
+    });
+
+    // Review Collapsible
+    let reviewOpen = true;
+    reviewHeader.addEventListener('click', () => {
+      reviewOpen = !reviewOpen;
+      if (reviewOpen) {
+        reviewContent.classList.remove('hidden');
+        reviewArrow.classList.remove('rotate-180');
+      } else {
+        reviewContent.classList.add('hidden');
+        reviewArrow.classList.add('rotate-180');
+      }
+    });
+
+    // Cancel card selection
+    btnCancelSelect.addEventListener('click', () => {
+      clearSelection();
+    });
+
+    function clearSelection() {
+      state.selectedCardId = null;
+      selectionTipEl.classList.add('hidden');
+      selectionTipEl.classList.remove('flex');
+      document.querySelectorAll('.drag-card').forEach(c => c.classList.remove('selected-card'));
+      document.querySelectorAll('.table-slot').forEach(s => s.classList.remove('active-target'));
+    }
+
+    // Shuffle array utility
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // Card pool rendering
+    let cardOrder = ALL_CARDS.map(c => c.id);
+
+    function renderPool() {
+      cardsPoolEl.innerHTML = '';
+      const placedCardIds = new Set(Object.values(state.placements));
+
+      let availableCards = cardOrder
+        .filter(id => !placedCardIds.has(id))
+        .map(id => cardMap[id]);
+
+      if (state.currentFilter !== 'all') {
+        availableCards = availableCards.filter(c => c.type === state.currentFilter);
+      }
+
+      poolRemainingCountEl.textContent = ALL_CARDS.length - placedCardIds.size;
+      filledStatusEl.textContent = `已放置 ${placedCardIds.size} / 18`;
+
+      if (availableCards.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'w-full py-8 text-center text-stone-400 text-sm font-medium flex flex-col items-center justify-center';
+        emptyMsg.innerHTML = '<i data-lucide="check-check" class="w-8 h-8 text-emerald-500 mb-1"></i><span>此分類方塊已全數放置完成！</span>';
+        cardsPoolEl.appendChild(emptyMsg);
+        lucide.createIcons();
+        return;
+      }
+
+      availableCards.forEach(card => {
+        const cardEl = createCardElement(card);
+        cardsPoolEl.appendChild(cardEl);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Color definitions for card tiles
+    const colorStyles = {
+      red: 'bg-white hover:bg-red-50 text-[#9a3832] border-red-300 shadow-sm',
+      blue: 'bg-white hover:bg-blue-50 text-[#2357a4] border-blue-300 shadow-sm',
+      amber: 'bg-white hover:bg-amber-50 text-[#853826] border-amber-300 shadow-sm',
+      emerald: 'bg-white hover:bg-stone-50 text-[#2d2d2d] border-stone-300 shadow-sm'
+    };
+
+    function createCardElement(card) {
+      const el = document.createElement('div');
+      el.id = card.id;
+      el.className = `drag-card px-3.5 py-2 rounded-xl border-2 font-bold cursor-pointer flex items-center justify-center text-center transition-all ${colorStyles[card.color]} ${card.fontClass}`;
+      el.draggable = true;
+      el.dataset.cardId = card.id;
+      el.dataset.cardType = card.type;
+
+      // Handle multi-line rendering for features if available
+      if (card.sublines && card.sublines.length > 1) {
+        el.innerHTML = `<div class="leading-tight">${card.sublines.join('<br>')}</div>`;
+      } else {
+        el.textContent = card.title;
+      }
+
+      if (state.selectedCardId === card.id) {
+        el.classList.add('selected-card');
+      }
+
+      // Click to select
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        SoundEffects.playPop();
+        // Start timer automatically on first action
+        if (!state.timerRunning && state.timerSeconds === 0) {
+          startTimer();
+        }
+
+        if (state.selectedCardId === card.id) {
+          clearSelection();
+        } else {
+          state.selectedCardId = card.id;
+          document.querySelectorAll('.drag-card').forEach(c => c.classList.remove('selected-card'));
+          el.classList.add('selected-card');
+          selectedCardNameEl.textContent = card.title.replace(/\n/g, ' ');
+          selectionTipEl.classList.remove('hidden');
+          selectionTipEl.classList.add('flex');
+          // Highlight empty target slots
+          document.querySelectorAll('.table-slot').forEach(s => {
+            s.classList.add('active-target');
+          });
+        }
+      });
+
+      // Drag and drop events
+      el.addEventListener('dragstart', (e) => {
+        SoundEffects.playPop();
+        if (!state.timerRunning && state.timerSeconds === 0) {
+          startTimer();
+        }
+        e.dataTransfer.setData('text/plain', card.id);
+        el.classList.add('dragging');
+        document.querySelectorAll('.table-slot').forEach(s => s.classList.add('active-target'));
+      });
+
+      el.addEventListener('dragend', () => {
+        el.classList.remove('dragging');
+        document.querySelectorAll('.table-slot').forEach(s => s.classList.remove('active-target'));
+      });
+
+      return el;
+    }
+
+    // Render Slots in Table
+    function renderTableSlots() {
+      const slots = document.querySelectorAll('.table-slot');
+      slots.forEach(slot => {
+        const slotId = slot.dataset.slotId;
+        const placedCardId = state.placements[slotId];
+
+        // Clear existing children except placeholder
+        slot.innerHTML = '';
+
+        if (placedCardId) {
+          const card = cardMap[placedCardId];
+          const placedEl = document.createElement('div');
+          placedEl.className = `w-full h-full min-h-[58px] p-2 rounded-lg flex items-center justify-center text-center font-bold relative group cursor-pointer transition ${colorStyles[card.color]} ${card.fontClass}`;
+          
+          if (card.sublines && card.sublines.length > 1) {
+            placedEl.innerHTML = `<div class="leading-tight">${card.sublines.join('<br>')}</div>`;
+          } else {
+            placedEl.textContent = card.title;
+          }
+
+          // Delete/return button badge
+          const returnBtn = document.createElement('button');
+          returnBtn.className = 'absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow text-xs';
+          returnBtn.title = '點擊收回方塊';
+          returnBtn.innerHTML = '✕';
+          returnBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeCardFromSlot(slotId);
+          });
+          placedEl.appendChild(returnBtn);
+
+          // Clicking a placed card returns it
+          placedEl.addEventListener('click', () => {
+            removeCardFromSlot(slotId);
+          });
+
+          slot.appendChild(placedEl);
+        } else {
+          // Show default placeholder
+          const placeholder = document.createElement('span');
+          placeholder.className = 'slot-placeholder text-xs text-stone-400 font-medium';
+          
+          if (slot.dataset.correctType === 'year') placeholder.textContent = '放年份';
+          else if (slot.dataset.correctType === 'company') placeholder.textContent = '放公司';
+          else if (slot.dataset.correctType === 'work') placeholder.textContent = '放作品';
+          else placeholder.textContent = '放特色';
+
+          slot.appendChild(placeholder);
+        }
+      });
+    }
+
+    // Place card into slot
+    function placeCard(cardId, slotId) {
+      if (!cardId || !slotId) return;
+
+      // If card was already in another slot, remove it from that slot
+      for (const [sId, cId] of Object.entries(state.placements)) {
+        if (cId === cardId) {
+          delete state.placements[sId];
+        }
+      }
+
+      // If slot already had a card, it simply replaces it (the old one goes back to pool)
+      state.placements[slotId] = cardId;
+      SoundEffects.playDrop();
+      clearSelection();
+      renderTableSlots();
+      renderPool();
+
+      // Reset checking state if modified
+      resetCheckingVisuals();
+    }
+
+    // Remove card from slot
+    function removeCardFromSlot(slotId) {
+      if (state.placements[slotId]) {
+        delete state.placements[slotId];
+        SoundEffects.playDrop();
+        renderTableSlots();
+        renderPool();
+        resetCheckingVisuals();
+      }
+    }
+
+    function resetCheckingVisuals() {
+      state.isChecking = false;
+      document.querySelectorAll('.table-slot').forEach(s => {
+        s.classList.remove('correct-slot', 'wrong-slot');
+      });
+      checkFeedbackBanner.classList.add('hidden');
+    }
+
+    // Attach slot listeners (click & drop)
+    document.querySelectorAll('.table-slot').forEach(slot => {
+      const slotId = slot.dataset.slotId;
+
+      // Click slot when a card is selected
+      slot.addEventListener('click', () => {
+        if (state.selectedCardId) {
+          placeCard(state.selectedCardId, slotId);
+        }
+      });
+
+      // Drag and drop handlers
+      slot.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        slot.classList.add('active-target');
+      });
+
+      slot.addEventListener('dragleave', () => {
+        slot.classList.remove('active-target');
+      });
+
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        slot.classList.remove('active-target');
+        const cardId = e.dataTransfer.getData('text/plain');
+        if (cardId) {
+          placeCard(cardId, slotId);
+        }
+      });
+    });
+
+    // Category Filter tabs
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => {
+          t.className = 'filter-tab px-3 py-1 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 transition';
+        });
+        tab.className = 'filter-tab active-filter px-3 py-1 rounded-full bg-stone-800 text-white shadow-sm transition';
+        state.currentFilter = tab.dataset.filter;
+        SoundEffects.playPop();
+        renderPool();
+      });
+    });
+
+    // Shuffle pool order
+    btnShufflePool.addEventListener('click', () => {
+      cardOrder = shuffleArray(cardOrder);
+      SoundEffects.playPop();
+      renderPool();
+    });
+
+
+    function unlockReviewSection() {
+      if (reviewSection) {
+        reviewSection.classList.remove('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    // Check Answers
+    btnCheckAnswer.addEventListener('click', () => {
+      state.isChecking = true;
+      let correctCount = 0;
+      let totalSlots = 0;
+      let wrongSlots = [];
+
+      document.querySelectorAll('.table-slot').forEach(slot => {
+        totalSlots++;
+        const slotId = slot.dataset.slotId;
+        const correctCardId = slot.dataset.correctId;
+        const placedCardId = state.placements[slotId];
+
+        slot.classList.remove('correct-slot', 'wrong-slot');
+
+        if (placedCardId === correctCardId) {
+          correctCount++;
+          slot.classList.add('correct-slot');
+        } else if (placedCardId) {
+          slot.classList.add('wrong-slot');
+          wrongSlots.push(slotId);
+        }
+      });
+
+      checkFeedbackBanner.classList.remove('hidden');
+
+      // Calculate accuracy
+      const accuracyPercent = Math.round((correctCount / totalSlots) * 100);
+      statAccuracyEl.textContent = `${accuracyPercent}%`;
+      statCorrectEl.textContent = `${correctCount} / ${totalSlots}`;
+      statWrongEl.textContent = `${totalSlots - correctCount} 格`;
+      statTimeEl.textContent = timerDisplay.textContent;
+      accuracyStatusEl.textContent = `正確率：${accuracyPercent}%`;
+      if (accuracyPercent === 100) {
+        statAccuracyEl.className = 'text-xl md:text-2xl font-black text-emerald-600';
+        accuracyStatusEl.className = 'ml-2 font-mono bg-emerald-100 px-2.5 py-0.5 rounded text-xs text-emerald-800 font-bold border border-emerald-300';
+      } else if (accuracyPercent >= 60) {
+        statAccuracyEl.className = 'text-xl md:text-2xl font-black text-amber-600';
+        accuracyStatusEl.className = 'ml-2 font-mono bg-amber-100 px-2.5 py-0.5 rounded text-xs text-amber-800 font-bold border border-amber-300';
+      } else {
+        statAccuracyEl.className = 'text-xl md:text-2xl font-black text-rose-600';
+        accuracyStatusEl.className = 'ml-2 font-mono bg-rose-100 px-2.5 py-0.5 rounded text-xs text-rose-800 font-bold border border-rose-300';
+      }
+
+      // Unlock review section after checking answer
+      unlockReviewSection();
+
+      if (correctCount === totalSlots) {
+        // Complete Victory!
+        SoundEffects.playFanfare();
+        pauseTimer();
+        feedbackIconContainer.className = 'p-1 rounded-full bg-emerald-500 text-white';
+        feedbackIconContainer.innerHTML = '<i data-lucide="trophy" class="w-5 h-5"></i>';
+        checkFeedbackBanner.className = 'mb-4 p-3.5 rounded-xl bg-emerald-100 border-2 border-emerald-400 text-emerald-950 flex flex-col gap-1 shadow-sm';
+        feedbackMessage.innerHTML = `<strong>太棒了！正確率 100%（${correctCount} / ${totalSlots}）！</strong> 全班合力完成全部表格整理！`;
+
+        // Trigger Confetti
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+        }
+
+        // Show victory modal
+        victoryTimeEl.textContent = timerDisplay.textContent;
+        setTimeout(() => {
+          victoryModal.classList.remove('hidden');
+        }, 600);
+
+      } else if (correctCount > 0) {
+        SoundEffects.playSuccess();
+        feedbackIconContainer.className = 'p-1 rounded-full bg-amber-500 text-white';
+        feedbackIconContainer.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5"></i>';
+        checkFeedbackBanner.className = 'mb-4 p-3.5 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-950 flex flex-col gap-1';
+        feedbackMessage.innerHTML = `<strong>答對 ${correctCount} / ${totalSlots} 格！</strong> 綠色框為正確，紅色虛線為放錯位置，繼續加油！`;
+      } else {
+        SoundEffects.playWrong();
+        feedbackIconContainer.className = 'p-1 rounded-full bg-rose-500 text-white';
+        feedbackIconContainer.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        checkFeedbackBanner.className = 'mb-4 p-3.5 rounded-xl bg-rose-100 border-2 border-rose-400 text-rose-950 flex flex-col gap-1';
+        feedbackMessage.innerHTML = `<strong>目前尚未答對！</strong> 試著回想課文時間順序：1928、1937、1988、1995、2001！`;
+      }
+
+      lucide.createIcons();
+    });
+
+    btnCloseBanner.addEventListener('click', () => {
+      checkFeedbackBanner.classList.add('hidden');
+    });
+
+    // Toggle Solution (解答對照)
+    let showingSolution = false;
+    let savedPlacementsBeforeSolution = null;
+
+    btnToggleSolution.addEventListener('click', () => {
+      showingSolution = !showingSolution;
+      if (showingSolution) {
+        savedPlacementsBeforeSolution = { ...state.placements };
+        document.querySelectorAll('.table-slot').forEach(slot => {
+          state.placements[slot.dataset.slotId] = slot.dataset.correctId;
+        });
+        solutionBtnText.textContent = '返回作答';
+        btnToggleSolution.className = 'flex items-center bg-stone-700 hover:bg-stone-800 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm transition text-sm';
+        SoundEffects.playSuccess();
+      } else {
+        if (savedPlacementsBeforeSolution) {
+          state.placements = { ...savedPlacementsBeforeSolution };
+        }
+        solutionBtnText.textContent = '解答對照';
+        btnToggleSolution.className = 'flex items-center bg-amber-600 hover:bg-amber-700 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm transition text-sm';
+      }
+      renderTableSlots();
+      renderPool();
+      resetCheckingVisuals();
+    });
+
+    // Hint: fills one remaining slot or fixes one wrong slot
+    btnHint.addEventListener('click', () => {
+      const slots = Array.from(document.querySelectorAll('.table-slot'));
+      // Find an empty or wrong slot
+      const targetSlot = slots.find(s => {
+        const slotId = s.dataset.slotId;
+        const correctCardId = s.dataset.correctId;
+        return state.placements[slotId] !== correctCardId;
+      });
+
+      if (targetSlot) {
+        const slotId = targetSlot.dataset.slotId;
+        const correctCardId = targetSlot.dataset.correctId;
+        placeCard(correctCardId, slotId);
+        targetSlot.classList.add('correct-slot');
+        SoundEffects.playSuccess();
+
+        // Banner hint
+        checkFeedbackBanner.classList.remove('hidden');
+        feedbackIconContainer.className = 'p-1 rounded-full bg-blue-500 text-white';
+        feedbackIconContainer.innerHTML = '<i data-lucide="lightbulb" class="w-5 h-5"></i>';
+        checkFeedbackBanner.className = 'mb-4 p-3 rounded-xl bg-blue-50 border border-blue-300 text-blue-900';
+        feedbackMessage.textContent = `💡 提示已為你填入：${cardMap[correctCardId].title.replace(/\n/g, ' ')}`;
+        lucide.createIcons();
+      }
+    });
+
+    // Fill All (Demonstration mode for teacher)
+    btnFillAll.addEventListener('click', () => {
+      document.querySelectorAll('.table-slot').forEach(slot => {
+        state.placements[slot.dataset.slotId] = slot.dataset.correctId;
+      });
+      SoundEffects.playSuccess();
+      unlockReviewSection();
+      renderTableSlots();
+      renderPool();
+      resetCheckingVisuals();
+    });
+
+    // Reset All
+    btnReset.addEventListener('click', () => {
+      state.placements = {};
+      clearSelection();
+      cardOrder = shuffleArray(cardOrder);
+      resetTimer();
+      accuracyStatusEl.textContent = '正確率：--';
+      accuracyStatusEl.className = 'ml-2 font-mono bg-white/80 px-2.5 py-0.5 rounded text-xs text-stone-700 font-bold border border-stone-200';
+      if (reviewSection) reviewSection.classList.add('hidden');
+      renderTableSlots();
+      renderPool();
+      resetCheckingVisuals();
+      SoundEffects.playDrop();
+    });
+
+    // Victory Modal actions
+    btnVictoryRestart.addEventListener('click', () => {
+      victoryModal.classList.add('hidden');
+      btnReset.click();
+    });
+    btnVictoryClose.addEventListener('click', () => {
+      victoryModal.classList.add('hidden');
+    });
+
+    // Initialize Game on Load
+    function initApp() {
+      cardOrder = shuffleArray(cardOrder);
+      renderTableSlots();
+      renderPool();
+      lucide.createIcons();
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
